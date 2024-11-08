@@ -88,7 +88,7 @@ Resources:
       InstanceType: "t2.micro"
       SecurityGroupIds: [ !Ref MySecurityGroup ]
       SubnetId: !Ref MySubnet
-      ImageId: "ami-063d43db0594b521b" # Reemplaza con la AMI de Amazon Linux 2 para tu región
+      ImageId: "ami-0abcdef1234567890" # Reemplaza con la AMI de Amazon Linux 2 para tu región
       KeyName: !Ref KeyName
       UserData:
         Fn::Base64: !Sub |
@@ -164,3 +164,4 @@ Parameters:
   KeyName:
     Type: String
     Description: "The name of the SSH key pair to use"
+
