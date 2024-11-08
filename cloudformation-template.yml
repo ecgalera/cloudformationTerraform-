@@ -93,12 +93,14 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
-          yum update -y
-          amazon-linux-extras install docker -y
-          service docker start
-          usermod -aG docker ec2-user
-          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          chmod +x /usr/local/bin/docker-compose
+          set -e
+          echo "Iniciando script de configuración" > /var/log/user-data.log
+          yum update -y | tee -a /var/log/user-data.log
+          amazon-linux-extras install docker -y | tee -a /var/log/user-data.log
+          service docker start | tee -a /var/log/user-data.log
+          usermod -aG docker ec2-user | tee -a /var/log/user-data.log
+          curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose | tee -a /var/log/user-data.log
+          chmod +x /usr/local/bin/docker-compose | tee -a /var/log/user-data.log
           cat <<EOF > /home/ec2-user/docker-compose.yml
           version: '3'
           services:
@@ -152,16 +154,15 @@ Resources:
           cat <<EOF > /home/ec2-user/prometheus.yml
           global:
             scrape_interval: 15s
-
           scrape_configs:
             - job_name: 'nginx'
               static_configs:
                 - targets: ['nginx-exporter:9113']
           EOF
-          docker-compose -f /home/ec2-user/docker-compose.yml up -d
+          docker-compose -f /home/ec2-user/docker-compose.yml up -d | tee -a /var/log/user-data.log
+          echo "Script de configuración completado" >> /var/log/user-data.log
 
 Parameters:
   KeyName:
     Type: String
     Description: "The name of the SSH key pair to use"
-
