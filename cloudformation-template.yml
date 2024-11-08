@@ -2,26 +2,26 @@ AWSTemplateFormatVersion: '2010-09-09'
 Resources:
   MyVPC:
     Type: "AWS::EC2::VPC"
-    Properties: 
+    Properties:
       CidrBlock: "10.0.0.0/16"
-      Tags: 
+      Tags:
         - Key: "Name"
           Value: "MyVPC"
 
   MySubnet:
     Type: "AWS::EC2::Subnet"
-    Properties: 
+    Properties:
       VpcId: !Ref MyVPC
       CidrBlock: "10.0.1.0/24"
       MapPublicIpOnLaunch: true
-      Tags: 
+      Tags:
         - Key: "Name"
           Value: "MySubnet"
 
   MyInternetGateway:
     Type: "AWS::EC2::InternetGateway"
     Properties:
-      Tags: 
+      Tags:
         - Key: "Name"
           Value: "MyInternetGateway"
 
@@ -33,22 +33,22 @@ Resources:
 
   MyRouteTable:
     Type: "AWS::EC2::RouteTable"
-    Properties: 
+    Properties:
       VpcId: !Ref MyVPC
-      Tags: 
+      Tags:
         - Key: "Name"
           Value: "MyRouteTable"
 
   MyRoute:
     Type: "AWS::EC2::Route"
-    Properties: 
+    Properties:
       RouteTableId: !Ref MyRouteTable
       DestinationCidrBlock: "0.0.0.0/0"
       GatewayId: !Ref MyInternetGateway
 
   MyRouteTableAssociation:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
-    Properties: 
+    Properties:
       SubnetId: !Ref MySubnet
       RouteTableId: !Ref MyRouteTable
 
@@ -78,7 +78,7 @@ Resources:
           FromPort: "22"
           ToPort: "22"
           CidrIp: "0.0.0.0/0"
-      Tags: 
+      Tags:
         - Key: "Name"
           Value: "MySecurityGroup"
 
@@ -88,7 +88,7 @@ Resources:
       InstanceType: "t2.micro"
       SecurityGroupIds: [ !Ref MySecurityGroup ]
       SubnetId: !Ref MySubnet
-      ImageId: "ami-063d43db0594b521b" # Reemplaza con la AMI de Amazon Linux 2 para tu región
+      ImageId: "ami-0abcdef1234567890" # Reemplaza con la AMI de Amazon Linux 2 para tu región
       KeyName: !Ref KeyName
       UserData:
         Fn::Base64: !Sub |
@@ -142,7 +142,6 @@ Resources:
                   access_log off;
                   allow all;
               }
-
               location / {
                   proxy_pass http://localhost:8080;
                   proxy_set_header Host $host;
@@ -164,4 +163,4 @@ Resources:
 Parameters:
   KeyName:
     Type: String
-    Description:
+    Description: "The name of the SSH key pair to use"
