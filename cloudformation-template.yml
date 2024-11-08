@@ -1,4 +1,8 @@
 AWSTemplateFormatVersion: '2010-09-09'
+Parameters:
+  KeyName:
+    Type: String
+    Description: "The name of the SSH key pair to use"
 Resources:
   MyVPC:
     Type: "AWS::EC2::VPC"
@@ -89,31 +93,21 @@ Resources:
       SecurityGroupIds: [ !Ref MySecurityGroup ]
       SubnetId: !Ref MySubnet
       ImageId: "ami-063d43db0594b521b" # Reemplaza con la AMI de Amazon Linux 2 para tu región
-      KeyName: !Ref KeyName
+      KeyName: !Ref KEY_NAME
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
           set -e
           echo "Iniciando script de configuración" > /var/log/user-data.log
-          
-          # Actualizar el sistema
           yum update -y | tee -a /var/log/user-data.log
-          
-          # Instalar Docker usando el repositorio oficial de Docker
-          yum install -y docker | tee -a /var/log/user-data.log
-          
-          # Iniciar el servicio Docker
-          systemctl start docker | tee -a /var/log/user-data.log
-          systemctl enable docker | tee -a /var/log/user-data.log
-          
-          # Agregar el usuario ec2-user al grupo docker
+          amazon-linux-extras install docker -y | tee -a /var/log/user-data.log || {
+              yum install -y docker | tee -a /var/log/user-data.log
+          }
+          service docker start | tee -a /var/log/user-data.log
+          groupadd docker || true
           usermod -aG docker ec2-user | tee -a /var/log/user-data.log
-          
-          # Instalar Docker Compose
           curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose | tee -a /var/log/user-data.log
           chmod +x /usr/local/bin/docker-compose | tee -a /var/log/user-data.log
-          
-          # Crear archivo docker-compose.yml
           cat <<EOF > /home/ec2-user/docker-compose.yml
           version: '3'
           services:
@@ -150,8 +144,6 @@ Resources:
             mynetwork:
               driver: bridge
           EOF
-          
-          # Crear archivo nginx.conf
           cat <<EOF > /home/ec2-user/nginx.conf
           server {
               location /stub_status {
@@ -166,8 +158,6 @@ Resources:
               }
           }
           EOF
-          
-          # Crear archivo prometheus.yml
           cat <<EOF > /home/ec2-user/prometheus.yml
           global:
             scrape_interval: 15s
@@ -176,8 +166,5 @@ Resources:
               static_configs:
                 - targets: ['nginx-exporter:9113']
           EOF
-
-          # Ejecutar docker-compose
           docker-compose -f /home/ec2-user/docker-compose.yml up -d | tee -a /var/log/user-data.log
-          
-          echo "
+          echo "Script de configuración completado" >> /var/log/user-data.log
