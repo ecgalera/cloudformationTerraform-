@@ -100,16 +100,13 @@ Resources:
           yum update -y | tee -a /var/log/user-data.log
           
           # Instalar Docker usando el repositorio oficial de Docker
-          amazon-linux-extras install docker -y | tee -a /var/log/user-data.log || {
-              # Alternativa si `amazon-linux-extras` no está disponible
-              yum install -y docker | tee -a /var/log/user-data.log
-          }
+          yum install -y docker | tee -a /var/log/user-data.log
           
           # Iniciar el servicio Docker
-          service docker start | tee -a /var/log/user-data.log
+          systemctl start docker | tee -a /var/log/user-data.log
+          systemctl enable docker | tee -a /var/log/user-data.log
           
           # Agregar el usuario ec2-user al grupo docker
-          groupadd docker || true
           usermod -aG docker ec2-user | tee -a /var/log/user-data.log
           
           # Instalar Docker Compose
@@ -183,9 +180,4 @@ Resources:
           # Ejecutar docker-compose
           docker-compose -f /home/ec2-user/docker-compose.yml up -d | tee -a /var/log/user-data.log
           
-          echo "Script de configuración completado" >> /var/log/user-data.log
-
-Parameters:
-  KeyName:
-    Type: String
-    Description: "The name of the SSH key pair to use"
+          echo "
