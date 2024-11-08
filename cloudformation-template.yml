@@ -93,7 +93,7 @@ Resources:
       SecurityGroupIds: [ !Ref MySecurityGroup ]
       SubnetId: !Ref MySubnet
       ImageId: "ami-063d43db0594b521b" # Reemplaza con la AMI de Amazon Linux 2 para tu región
-      KeyName: !Ref KEY_NAME
+      KeyName: !Ref KeyName
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
