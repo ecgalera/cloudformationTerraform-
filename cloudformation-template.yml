@@ -92,23 +92,35 @@ Resources:
       InstanceType: "t2.micro"
       SecurityGroupIds: [ !Ref MySecurityGroup ]
       SubnetId: !Ref MySubnet
-      ImageId: "ami-063d43db0594b521b" # Reemplaza con la AMI de Amazon Linux 2 para tu región
+      ImageId: "ami-005fc0f236362e99f" # Reemplaza con la AMI de Ubuntu 20.04 LTS para tu región
       KeyName: !Ref KeyName
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
           set -e
           echo "Iniciando script de configuración" > /var/log/user-data.log
-          yum update -y | tee -a /var/log/user-data.log
-          amazon-linux-extras install docker -y | tee -a /var/log/user-data.log || {
-              yum install -y docker | tee -a /var/log/user-data.log
-          }
-          service docker start | tee -a /var/log/user-data.log
-          groupadd docker || true
-          usermod -aG docker ec2-user | tee -a /var/log/user-data.log
+          
+          # Actualizar el sistema
+          apt-get update -y | tee -a /var/log/user-data.log
+          
+          # Instalar Docker
+          apt-get install -y docker.io | tee -a /var/log/user-data.log
+          
+          # Iniciar el servicio Docker
+          systemctl start docker | tee -a /var/log/user-data.log
+          
+          # Habilitar el servicio Docker para que se inicie automáticamente
+          systemctl enable docker | tee -a /var/log/user-data.log
+          
+          # Agregar el usuario ubuntu al grupo docker
+          usermod -aG docker ubuntu | tee -a /var/log/user-data.log
+          
+          # Instalar Docker Compose
           curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose | tee -a /var/log/user-data.log
           chmod +x /usr/local/bin/docker-compose | tee -a /var/log/user-data.log
-          cat <<EOF > /home/ec2-user/docker-compose.yml
+          
+          # Crear archivo docker-compose.yml
+          cat <<EOF > /home/ubuntu/docker-compose.yml
           version: '3'
           services:
             nginx:
@@ -144,7 +156,9 @@ Resources:
             mynetwork:
               driver: bridge
           EOF
-          cat <<EOF > /home/ec2-user/nginx.conf
+          
+          # Crear archivo nginx.conf
+          cat <<EOF > /home/ubuntu/nginx.conf
           server {
               location /stub_status {
                   stub_status on;
@@ -158,7 +172,9 @@ Resources:
               }
           }
           EOF
-          cat <<EOF > /home/ec2-user/prometheus.yml
+          
+          # Crear archivo prometheus.yml
+          cat <<EOF > /home/ubuntu/prometheus.yml
           global:
             scrape_interval: 15s
           scrape_configs:
@@ -166,5 +182,9 @@ Resources:
               static_configs:
                 - targets: ['nginx-exporter:9113']
           EOF
-          docker-compose -f /home/ec2-user/docker-compose.yml up -d | tee -a /var/log/user-data.log
+
+          # Ejecutar docker-compose
+          docker-compose -f /home/ubuntu/docker-compose.yml up -d | tee -a /var/log/user-data.log
+          
           echo "Script de configuración completado" >> /var/log/user-data.log
+
