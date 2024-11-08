@@ -30,4 +30,5 @@ jobs:
       run: terraform init
 
     - name: Terraform Apply
-      run: terraform apply -auto-approve -var key_name=${{ secrets.KEY_NAME
+      run: terraform apply -auto-approve -var KEY_NAME=${{ secrets.KEY_NAME }}
+
