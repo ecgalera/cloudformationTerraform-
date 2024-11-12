@@ -31,4 +31,3 @@ jobs:
 
     - name: Terraform Apply
       run: terraform apply -auto-approve -var KEY_NAME=${{ secrets.KEY_NAME }}
-
