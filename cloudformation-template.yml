@@ -186,9 +186,5 @@ Resources:
           # Ejecutar docker-compose
           docker-compose -f /home/ubuntu/docker-compose.yml up -d | tee -a /var/log/user-data.log
           
-
           echo "Script de configuración completado" >> /var/log/user-data.log
-=======
-          echo "Script de configuración completado" >> /var/log/user-data.log
-
 
